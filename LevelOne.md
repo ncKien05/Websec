@@ -67,13 +67,13 @@ if (isset ($_POST['submit']) && isset ($_POST['user_id'])) {
 ```
 
 # Phân tích luông thực thi
-Dữ liệu nhận vào được gán vào biến `user_input` (dòng 58) kèm 1 token chống CSRF (dòng 63)
-Dòng 32, tạo 1 biến `lo` có kiểu dl là class `LevelOne`
-Dòng 33, biến `lo` gọi hàm `doQuery` và truyền vào đó biến `user_input`. Kết quả sẽ lưu vào biến `userDetails` 
-Trong `doQuery`, biến `pdo` được tạo ra để kết nối tới database
-Biến `query` được khởi tạo thông qua phương pháp nối chuỗi với `user_input`(lúc này là `injection`) 
-Biến `getUsers` được gán kết quả của quá trình thực thi `query` thông qua `pdo`
-Biến `users` lấy giá trị từ hàng mà `getUsers` đang trỏ đến và được in ra tại dòng 48
+Dữ liệu nhận vào được gán vào biến `user_input` (dòng 58) kèm 1 token chống CSRF (dòng 63)  
+Dòng 32, tạo 1 biến `lo` có kiểu dl là class `LevelOne`  
+Dòng 33, biến `lo` gọi hàm `doQuery` và truyền vào đó biến `user_input`. Kết quả sẽ lưu vào biến `userDetails`  
+Trong `doQuery`, biến `pdo` được tạo ra để kết nối tới database  
+Biến `query` được khởi tạo thông qua phương pháp nối chuỗi với `user_input`(lúc này là `injection`)  
+Biến `getUsers` được gán kết quả của quá trình thực thi `query` thông qua `pdo`  
+Biến `users` lấy giá trị từ hàng mà `getUsers` đang trỏ đến và được in ra tại dòng 48  
 
 # Phân tích lỗ hổng
 Vấn đề cốt lõi nằm ở dòng số 34, `query` được khởi tạo từ `user_input` mà không hề qua 1 bước tiền xử lý nào. Điều này có nghĩa là bất cứ giá trị gì được nhập vào `user_input` đều có thể được thực thi trực tiếp bởi `pdo`.
@@ -84,8 +84,10 @@ Trong trường hợp thông thường, khi ta nhập `1` vào ô `user_id` thì
 
 # Payload exploit
 * Lấy ra các bảng có trong db
-`4 UNION SELECT name,sql FROM sqlite_master WHERE type='table'--` 
+
+`4 UNION SELECT name,sql FROM sqlite_master WHERE type='table'--`  
 => bảng `users`
 
 * Khai thác bảng (đã biết SELECT bao nhiêu cột từ dòng 17 rồi)
+
 `4 UNION SELECT username,password FROM users LIMIT 2,1-- ` 
