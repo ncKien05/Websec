@@ -67,16 +67,35 @@ if (isset ($_POST['submit']) && isset ($_POST['user_id'])) {
 ```
 
 # Phân tích luông thực thi
-Dữ liệu nhận vào được gán vào biến `user_input` (dòng 58) kèm 1 token chống CSRF (dòng 63)  
-Dòng 32, tạo 1 biến `lo` có kiểu dl là class `LevelOne`  
-Dòng 33, biến `lo` gọi hàm `doQuery` và truyền vào đó biến `user_input`. Kết quả sẽ lưu vào biến `userDetails`  
+Dữ liệu nhận vào được gán vào biến `user_input` kèm 1 token chống CSRF  
+```HTML
+<input type="text" class="form-control" id="user_id" name="user_id" value="1" required>
+
+<input type="hidden" id="token" name="token" value="<?php echo $_SESSION['token']; ?>">
+```
+Tạo 1 biến `lo` có kiểu dl là class `LevelOne`  
+
+```PHP
+$lo = new LevelOne ();
+```
+
+Biến `lo` gọi hàm `doQuery` và truyền vào đó biến `user_input`. Kết quả sẽ lưu vào biến `userDetails`  
+
+```PHP
+$userDetails = $lo->doQuery ($_POST['user_id']);
+```
+
 Trong `doQuery`, biến `pdo` được tạo ra để kết nối tới database  
 Biến `query` được khởi tạo thông qua phương pháp nối chuỗi với `user_input`(lúc này là `injection`)  
 Biến `getUsers` được gán kết quả của quá trình thực thi `query` thông qua `pdo`  
-Biến `users` lấy giá trị từ hàng mà `getUsers` đang trỏ đến và được in ra tại dòng 48  
+Biến `users` lấy giá trị từ hàng mà `getUsers` đang trỏ đến và được in ra. 
+
+```PHP
+echo $keys[$i++] . ' -> ' . $user . "<br />";
+```
 
 # Phân tích lỗ hổng
-Vấn đề cốt lõi nằm ở dòng số 34, `query` được khởi tạo từ `user_input` mà không hề qua 1 bước tiền xử lý nào. Điều này có nghĩa là bất cứ giá trị gì được nhập vào `user_input` đều có thể được thực thi trực tiếp bởi `pdo`.
+Vấn đề cốt lõi nằm ở `query` được khởi tạo từ `user_input` mà không hề qua 1 bước tiền xử lý nào. Điều này có nghĩa là bất cứ giá trị gì được nhập vào `user_input` đều có thể được thực thi trực tiếp bởi `pdo`.
 
 Trong trường hợp thông thường, khi ta nhập `1` vào ô `user_id` thì `query` sẽ có giá trị là `SELECT id,username FROM users WHERE id=1 LIMIT 1`. Tuy nhiên, khi ta thay đổi giá trị này thành `4 UNION SELECT 1,'admin'` thì `query` sẽ có giá trị là `SELECT id,username FROM users WHERE id=4 UNION SELECT 1,'admin' LIMIT 1`. Điều này sẽ khiến cho `pdo` thực thi câu truy vấn mới và trả về kết quả là `admin`.
 
